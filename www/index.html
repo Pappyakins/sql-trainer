@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SQL Trainer</title>
+<style>
+:root{
+  --navy:#0b2545; --navy2:#13315c; --gold:#f0b429; --gold-d:#b57f06;
+  --bg:#f2f5f9; --card:#ffffff; --text:#1b2733; --muted:#5d6f83;
+  --ok:#1e7e34; --err:#c0392b; --line:#e2e8f0;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+body{margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); font-size:16px;}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2)); color:#fff; padding:14px 16px 10px; position:sticky; top:0; z-index:20;}
+header h1{margin:0; font-size:20px; letter-spacing:.3px;}
+header h1 .g{color:var(--gold);}
+header p{margin:4px 0 0; font-size:12.5px; color:#c7d3e2;}
+.tabs{display:flex; gap:8px; margin-top:10px;}
+.tabs button{flex:1; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.08); color:#fff;
+  border-radius:10px; padding:10px; font-size:15px; font-weight:600;}
+.tabs button.active{background:var(--gold); border-color:var(--gold); color:var(--navy);}
+main{padding:12px 12px 40px; max-width:760px; margin:0 auto;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px;}
+.lesson-card{display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:var(--card);
+  border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:10px; font-size:16px;}
+.lesson-num{flex:0 0 38px; height:38px; border-radius:50%; background:var(--navy); color:#fff; display:flex;
+  align-items:center; justify-content:center; font-weight:700;}
+.lesson-card.done .lesson-num{background:var(--ok);}
+.lesson-card .t{flex:1;}
+.lesson-card .t b{display:block;}
+.lesson-card .t span{font-size:13px; color:var(--muted);}
+.badge{font-size:12px; font-weight:700; color:var(--ok);}
+.task{background:#fff8e6; border:1px solid var(--gold); border-radius:10px; padding:12px; margin:12px 0; font-size:15px;}
+.task b{color:var(--gold-d);}
+.explain{font-size:15px; line-height:1.55; color:var(--text);}
+.explain code, .schema code{background:#eef2f7; padding:1px 6px; border-radius:6px; font-size:13.5px;}
+.schema{font-size:13.5px; background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:10px 0;}
+.schema summary{font-weight:700; cursor:pointer; padding:4px 0;}
+.schema table{width:100%; border-collapse:collapse; margin-top:6px;}
+.schema th{text-align:left; color:var(--muted); font-weight:600; padding:4px 6px; border-bottom:1px solid var(--line);}
+.schema td{padding:4px 6px; border-bottom:1px solid #f1f5f9; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12.5px;}
+textarea.editor{width:100%; min-height:130px; background:var(--navy); color:#eaf1fb; border:none; border-radius:10px;
+  padding:12px; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:15px; line-height:1.5; resize:vertical;}
+.btnrow{display:flex; gap:8px; margin:10px 0; flex-wrap:wrap;}
+button.btn{border:none; border-radius:10px; padding:12px 16px; font-size:15px; font-weight:700; cursor:pointer;}
+.btn-run{background:var(--gold); color:var(--navy); flex:1;}
+.btn-check{background:var(--ok); color:#fff; flex:1;}
+.btn-ghost{background:#eef2f7; color:var(--navy);}
+.btn:active{transform:scale(.98);}
+.result{margin-top:10px; overflow-x:auto; border:1px solid var(--line); border-radius:10px; display:none;}
+.result.show{display:block;}
+.result table{border-collapse:collapse; width:100%; font-size:13.5px;}
+.result th{background:var(--navy); color:#fff; padding:8px 10px; text-align:left; white-space:nowrap; position:sticky; top:0;}
+.result td{padding:7px 10px; border-bottom:1px solid #f1f5f9; white-space:nowrap; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12.5px;}
+.result tr:nth-child(even) td{background:#f8fafc;}
+.msg{border-radius:10px; padding:10px 12px; margin:10px 0; font-size:14.5px; display:none;}
+.msg.show{display:block;}
+.msg.ok{background:#e6f4ea; color:#14532d; border:1px solid #9ed7ae;}
+.msg.err{background:#fdecea; color:#7f1d1d; border:1px solid #f3b3ae;}
+.msg.info{background:#e8f0fe; color:#1a3a6b; border:1px solid #b9d0f5;}
+pre.solution{background:var(--navy); color:#ffe9a8; padding:12px; border-radius:10px; font-size:13.5px; overflow-x:auto; display:none;}
+pre.solution.show{display:block;}
+.back{background:none; border:none; color:var(--navy); font-size:15px; font-weight:700; padding:6px 0; margin-bottom:4px;}
+.hint{font-size:14px; color:var(--muted); background:#f8fafc; border-left:3px solid var(--gold); padding:8px 12px; margin:10px 0; display:none;}
+.hint.show{display:block;}
+.empty{color:var(--muted); text-align:center; padding:20px; font-size:14px;}
+footer{color:var(--muted); font-size:12px; text-align:center; padding:18px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>SQL <span class="g">Trainer</span></h1>
+  <p>Learn SQL on real plant-floor data. Powered by @jakinsCraft</p>
+  <div class="tabs">
+    <button id="tab-lessons" class="active">Lessons</button>
+    <button id="tab-playground">Playground</button>
+  </div>
+</header>
+<main>
+  <div id="view-lessons"></div>
+  <div id="view-lesson" style="display:none"></div>
+  <div id="view-playground" style="display:none">
+    <div class="card">
+      <h3 style="margin:0 0 8px">Playground</h3>
+      <div class="explain">Free query box. Nothing is checked here — explore the data.</div>
+      <details class="schema"><summary>Schema browser</summary><div id="pg-schema"></div></details>
+      <textarea id="pg-editor" class="editor" placeholder="-- write any SELECT query here&#10;SELECT * FROM alarms LIMIT 10;"></textarea>
+      <div class="btnrow">
+        <button class="btn btn-run" id="pg-run">Run</button>
+        <button class="btn btn-ghost" id="pg-clear">Clear</button>
+      </div>
+      <div class="msg" id="pg-msg"></div>
+      <div class="result" id="pg-result"></div>
+    </div>
+  </div>
+  <footer>Queries run 100% on-device with SQLite. No account, no server.</footer>
+</main>
+<script src="sql-wasm.js"></script>
+<script>
+"use strict";
+/* ---------- seed data ---------- */
+function seedStatements(){
+  const p2=n=>String(n).padStart(2,"0");
+  const dAgo=n=>{const t=new Date();t.setDate(t.getDate()-n);
+    return t.getFullYear()+"-"+p2(t.getMonth()+1)+"-"+p2(t.getDate())+" "+p2(t.getHours())+":"+p2(t.getMinutes())+":"+p2(t.getSeconds());};
+  const S=[];
+  S.push("CREATE TABLE lines(id INTEGER PRIMARY KEY, name TEXT);");
+  S.push("INSERT INTO lines VALUES (1,'Line 1'),(2,'Line 2'),(3,'Line 3');");
+  S.push("CREATE TABLE alarm_codes(code TEXT PRIMARY KEY, description TEXT);");
+  S.push(`INSERT INTO alarm_codes VALUES
+    ('F071','VFD overcurrent fault'),('F072','VFD overvoltage fault'),
+    ('ESTOP','E-stop pressed'),('PE-BLK','Photoeye blocked'),
+    ('TEMP-HI','Motor overtemperature'),('AIR-LO','Low air pressure');`);
+  const A=[
+    [1,0,2,'F071','Critical','VFD overcurrent on conveyor motor'],
+    [2,1,2,'F071','Critical','VFD overcurrent on conveyor motor'],
+    [3,2,2,'F071','Warning','VFD current trending high'],
+    [4,3,2,'F071','Critical','VFD overcurrent on conveyor motor'],
+    [5,5,2,'F071','Warning','VFD current trending high'],
+    [6,1,2,'PE-BLK','Warning','Discharge photoeye blocked'],
+    [7,4,2,'PE-BLK','Warning','Infeed photoeye blocked'],
+    [8,6,2,'PE-BLK','Info','Photoeye flicker detected'],
+    [9,2,2,'TEMP-HI','Warning','Conveyor motor temp high'],
+    [10,6,2,'TEMP-HI','Critical','Conveyor motor overtemperature trip'],
+    [11,1,1,'F072','Critical','VFD overvoltage on palletizer'],
+    [12,3,1,'AIR-LO','Warning','Air pressure below 90 psi'],
+    [13,8,1,'ESTOP','Critical','E-stop pressed at operator station'],
+    [14,2,1,'PE-BLK','Info','Case photoeye blocked briefly'],
+    [15,9,1,'TEMP-HI','Warning','Palletizer motor temp high'],
+    [16,8,2,'AIR-LO','Warning','Air pressure below 90 psi'],
+    [17,9,2,'F071','Warning','VFD current trending high'],
+    [18,0,3,'ESTOP','Critical','E-stop pressed at wrapper'],
+    [19,2,3,'F071','Critical','VFD overcurrent on wrapper motor'],
+    [20,4,3,'PE-BLK','Warning','Wrapper photoeye blocked'],
+    [21,5,3,'AIR-LO','Info','Air pressure recovered'],
+    [22,6,3,'TEMP-HI','Critical','Wrapper motor overtemperature trip'],
+    [23,1,3,'F072','Warning','VFD DC bus high'],
+    [24,3,3,'PE-BLK','Info','Film photoeye blocked briefly']
+  ];
+  S.push("CREATE TABLE alarms(id INTEGER PRIMARY KEY, ts TEXT, line_id INTEGER, code TEXT, severity TEXT, message TEXT);");
+  A.forEach(r=>{S.push(`INSERT INTO alarms VALUES (${r[0]},'${dAgo(r[1])}',${r[2]},'${r[3]}','${r[4]}','${r[5].replace(/'/g,"''")}');`);});
+  S.push("CREATE TABLE production_runs(id INTEGER PRIMARY KEY, line_id INTEGER, shift TEXT, run_date TEXT, units INTEGER, downtime_min INTEGER);");
+  const P=[
+    [1,1,'Days',1,4200,12],[2,1,'Afternoons',2,3800,25],[3,1,'Nights',3,3500,40],
+    [4,2,'Days',1,5100,8],[5,2,'Afternoons',2,4900,18],[6,2,'Nights',4,4300,55],
+    [7,3,'Days',2,3900,30],[8,3,'Afternoons',3,3600,45],[9,3,'Nights',1,3100,95],
+    [10,3,'Nights',5,2900,80],[11,2,'Days',6,5000,10],[12,1,'Afternoons',6,3700,22]
+  ];
+  P.forEach(r=>{S.push(`INSERT INTO production_runs VALUES (${r[0]},${r[1]},'${r[2]}','${dAgo(r[3]).slice(0,10)}',${r[4]},${r[5]});`);});
+  return S;
+}
+</script>
+<script src="app.js"></script>
+</body>
+</html>
