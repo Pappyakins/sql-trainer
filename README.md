@@ -5,4 +5,4 @@ Learn SQL on real plant-floor data. A mobile-first practice app: 7 lessons from 
 - No account, no server. Lesson progress is stored on-device.
 - Package: com.jakinscraft.sqltrainer
 
-Built with Capacitor. Web source lives in ; Android shell is generated via .
+Built with Capacitor. Web source lives in `www/`; Android shell is generated via `npx cap sync`.
